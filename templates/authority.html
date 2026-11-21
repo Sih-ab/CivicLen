@@ -1,0 +1,2965 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CivicLen | Authority Dashboard</title>
+    <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #172033;
+        }
+
+        header {
+            background: #123b35;
+            color: white;
+            padding: 22px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 25px;
+        }
+
+        header p {
+            margin: 6px 0 0;
+            color: #d5e8e2;
+        }
+
+        .logout {
+    color: white;
+    background: transparent;
+    text-decoration: none;
+    border: 1px solid #d5e8e2;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.logout:hover {
+    transform: translateY(-3px) scale(1.06);
+    background: #d5e8e2;
+    color: #123b35;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.18);
+}
+
+        main {
+    max-width: 1400px;
+    width: calc(100% - 40px);
+    margin: 35px auto;
+    padding: 0 20px;
+}
+
+        .welcome {
+            margin-bottom: 25px;
+        }
+
+        .welcome h2 {
+            margin-bottom: 8px;
+        }
+
+        .welcome p {
+            color: #384a62;
+            font-size: 18px;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 22px;
+            border-radius: 14px;
+            box-shadow: 0 4px 18px #1720330b;
+        }
+
+        .summary-card span {
+            display: block;
+            color: #263f38;
+            margin-bottom: 10px;
+            font-size: 17px;
+        }
+
+        .summary-card strong {
+            font-size: 28px;
+        }
+
+        /* Summary Cards Hover Animation */
+
+.summary-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 10px 25px rgba(36, 72, 59, 0.13);
+}
+
+        .reports-panel {
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 4px 18px #1720330b;
+        }
+
+
+        .report-filters {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.report-filters input {
+    flex: 1;
+    min-width: 220px;
+    padding: 12px 15px;
+    border: 1px solid #DCE8DE;
+    border-radius: 8px;
+    background: #F8FBF8;
+    color: #546e97;
+    font-size: 16px;
+    outline: none;
+    transition: 0.3s ease;
+}
+.report-filters input::placeholder {
+    color: #64748b;
+    opacity: 1;
+}
+
+.report-filters input:focus {
+    border-color: #6B9278;
+    box-shadow: 0 0 0 3px rgba(107, 146, 120, 0.12);
+}
+
+.report-filters select {
+    min-width: 170px;
+    padding: 12px 14px;
+    border: 1px solid #DCE8DE;
+    border-radius: 8px;
+    background: #F8FBF8;
+   color: #1e293b;
+font-size: 16px;
+    cursor: pointer;
+    outline: none;
+}
+
+.report-filters select option {
+    font-size: 17px;
+    color: #1e293b;
+    padding: 10px;
+}
+
+.report-filters button {
+    padding: 12px 18px;
+    background: #24483B;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.report-filters button:hover {
+    background: #38634F;
+}
+
+
+
+
+        .panel-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .panel-heading h2 {
+            margin: 0;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 7px;
+            padding: 10px 14px;
+            font-weight: 600;
+        }
+
+        .refresh {
+            background: #e0f2ed;
+            color: #123b35;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 14px 12px;
+            border-bottom: 1px solid #e8edf3;
+            vertical-align: top;
+        }
+
+        th {
+    background: #f8fafc;
+    color: #24483B;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    -webkit-font-smoothing: antialiased;
+}
+
+        td {
+            font-size: 16px;
+            color: #1e293b;
+        }
+
+        .status {
+            display: inline-block;
+            background: #fff4d6;
+            color: #8a5b00;
+            padding: 6px 9px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .status-progress {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .status-resolved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 9px;
+            border: 1px solid #d5dce5;
+            border-radius: 7px;
+            margin-bottom: 8px;
+        }
+
+        .update-button {
+            background: #123b35;
+            color: white;
+            width: 100%;
+        }
+
+        .empty, .message {
+            padding: 20px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .error {
+            color: #b91c1c;
+        }
+
+        @media (max-width: 700px) {
+            header {
+                align-items: flex-start;
+            }
+
+            .summary {
+                grid-template-columns: 1fr;
+            }
+
+            .reports-panel {
+                padding: 15px;
+            }
+        }
+
+
+
+
+
+
+/* Authority Report Details Modal */
+.status-history-modal {
+position: fixed;
+inset: 0;
+z-index: 9999;
+background: rgba(18, 35, 32, 0.58);
+backdrop-filter: blur(6px);
+display: none;
+align-items: center;
+justify-content: center;
+padding: 20px;
+box-sizing: border-box;
+}
+
+.status-history-content {
+position: relative;
+width: min(100%, 620px);
+max-height: 90vh;
+overflow-y: auto;
+background: #ffffff;
+border: 1px solid #e5e9e3;
+border-radius: 22px;
+padding: 28px;
+box-shadow: 0 24px 70px rgba(20, 40, 35, 0.22);
+box-sizing: border-box;
+}
+
+.status-history-close {
+position: absolute;
+top: 14px;
+right: 16px;
+width: 38px;
+height: 38px;
+border: none;
+border-radius: 50%;
+background: #f1f5f1;
+color: #263b33;
+font-size: 28px;
+line-height: 1;
+cursor: pointer;
+}
+
+.status-history-close:hover {
+background: #e3ebe3;
+}
+
+.status-history-heading {
+margin-bottom: 24px;
+padding-right: 35px;
+}
+
+.status-history-label {
+display: inline-block;
+margin-bottom: 8px;
+color: #27805e;
+font-size: 11px;
+font-weight: 800;
+letter-spacing: 1.8px;
+}
+
+.status-history-heading h2 {
+margin: 0 0 8px;
+color: #20382e;
+font-size: 27px;
+}
+
+.status-history-heading p {
+margin: 0;
+color: #738078;
+font-size: 14px;
+line-height: 1.6;
+}
+
+.report-details-grid {
+display: grid;
+grid-template-columns: repeat(2, minmax(0, 1fr));
+gap: 14px;
+}
+
+.report-detail-card {
+min-width: 0;
+padding: 16px;
+background: #f7f9f6;
+border: 1px solid #e8ede6;
+border-radius: 14px;
+}
+
+.report-detail-full {
+grid-column: 1 / -1;
+}
+
+.report-detail-label {
+display: block;
+margin-bottom: 8px;
+color: #7a877f;
+font-size: 10px;
+font-weight: 800;
+letter-spacing: 1.2px;
+}
+
+.report-detail-card strong,
+.report-detail-card p {
+overflow-wrap: anywhere;
+color: #293d33;
+font-size: 14px;
+line-height: 1.7;
+}
+
+.report-detail-card p {
+margin: 0;
+white-space: pre-wrap;
+}
+
+@media (max-width: 520px) {
+.status-history-content {
+padding: 22px 16px;
+}
+
+
+.report-details-grid {
+    grid-template-columns: 1fr;
+}
+
+.report-detail-full {
+    grid-column: auto;
+}
+
+}
+
+
+
+/* Elegant Authority Dashboard Numbers */
+
+.summary-card strong {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 38px;
+    font-weight: 500;
+    color: #24483B;
+    line-height: 1.2;
+    letter-spacing: -1px;
+}
+
+#total-count {
+    color: #24483B;
+}
+
+#pending-count {
+    color: #A16207;
+}
+
+#in-progress-count {
+    color: #1D4ED8;
+}
+
+#resolved-count {
+    color: #15803D;
+}
+
+
+/* ===== CIVICLEN AUTHORITY REPORT DETAILS ===== */
+
+#authorityReportDetailsModal {
+    background: rgba(18, 35, 32, 0.58);
+    backdrop-filter: blur(6px);
+    padding: 20px;
+}
+
+#authorityReportDetailsModal .status-history-content {
+    position: relative;
+    width: min(100%, 900px);
+    max-height: calc(100vh - 30px);
+    overflow: hidden;
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 1px solid #e5e9e3;
+    border-radius: 22px;
+    padding: 20px 30px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+#authorityReportDetailsModal .status-history-heading {
+    text-align: center;
+    margin-bottom: 26px;
+}
+
+#authorityReportDetailsModal .status-history-label {
+    font-size: 13px;
+color: #1b6535;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+#authorityReportDetailsModal .status-history-heading h2 {
+    font-family: "Playfair Display", Georgia, serif;
+    color: #264537;
+    font-size: 36px;
+    font-weight: 600;
+    margin: 12px 0 8px;
+}
+
+#authorityReportDetailsModal .status-history-heading p {
+    color: #52665a;
+font-size: 17px;
+line-height: 1.8;
+}
+
+#authorityReportDetailsModal .report-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#authorityReportDetailsModal .report-detail-card {
+    background: #EDF4EE;
+    border: 1px solid #DCE8DE;
+    border-radius: 14px;
+    padding: 13px 18px;
+    min-width: 0;
+}
+
+#authorityReportDetailsModal .report-detail-full {
+    grid-column: 1 / -1;
+}
+
+#authorityReportDetailsModal .report-detail-label {
+    display: block;
+   color: #617568;
+font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    margin-bottom: 10px;
+}
+
+#authorityReportDetailsModal .report-detail-card strong {
+    color: #294438;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 22px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+#authorityReportDetailsModal .report-detail-card p {
+    color: #52665a;
+font-size: 17px;
+line-height: 1.8;
+    overflow-wrap: anywhere;
+    margin: 0;
+}
+
+#authorityReportDetailsModal .status-history-close {
+    color: #294438;
+}
+
+/* Hide scrollbar but keep scrolling */
+
+#authorityReportDetailsModal .status-history-content {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+#authorityReportDetailsModal .status-history-content::-webkit-scrollbar {
+    display: none;
+}
+
+/* Elegant close button */
+#authorityReportDetailsModal .status-history-close {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f1f5f0;
+    color: #294438;
+    font-size: 28px;
+    transition: all 0.2s ease;
+}
+
+#authorityReportDetailsModal .status-history-close:hover {
+    background: #e5eee5;
+    transform: rotate(90deg);
+}
+/* Road Match Modal - Same Close Button Animation */
+
+#roadMatchModal .status-history-close {
+    color: #294438;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+#roadMatchModal .status-history-close:hover {
+    background: #e5eee5;
+    transform: rotate(90deg);
+}
+
+@media (max-width: 600px) {
+    #authorityReportDetailsModal .status-history-content {
+        padding: 24px 18px;
+    }
+
+    #authorityReportDetailsModal .report-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #authorityReportDetailsModal .report-detail-full {
+        grid-column: auto;
+    }
+
+    #authorityReportDetailsModal .status-history-heading h2 {
+        font-size: 25px;
+    }
+}
+
+
+
+/* REOPEN REQUESTS SECTION */
+
+.reopen-panel {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 18px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 30px rgba(20, 45, 35, 0.05);
+}
+
+.reopen-description {
+    color: #334F43;
+    font-size: 18px;
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+.reopen-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.reopen-count {
+    background: #e3f2ed;
+    color: #245444;
+    padding: 12px 18px;
+    border-radius: 9px;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.reopen-count {
+    transition: transform 0.3s ease;
+}
+
+.reopen-count:hover {
+    transform: translateY(-3px);
+}
+
+.reopen-message {
+    color: #334F43;
+    font-size: 17px;
+    font-weight: 500;
+    margin: 20px 0;
+}
+
+.reopen-card {
+    background: #fbfcfa;
+    border: 1px solid #dce7df;
+    border-radius: 13px;
+    padding: 24px;
+    margin-top: 18px;
+}
+
+.reopen-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 18px;
+}
+
+.reopen-card-header h3 {
+    color: #183a32;
+    font-size: 18px;
+}
+
+.reopen-status {
+    background: #fff3d9;
+    color: #9a6500;
+    padding: 7px 13px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.reopen-info {
+    color: #52635d;
+    font-size: 14px;
+    line-height: 1.8;
+    margin-bottom: 15px;
+}
+
+.reopen-reason {
+    background: #f1f6f2;
+    border-left: 4px solid #245444;
+    padding: 15px;
+    border-radius: 7px;
+    margin: 15px 0;
+    color: #34463a;
+    line-height: 1.7;
+    font-size: 14px;
+}
+
+.reopen-remarks {
+    width: 100%;
+    min-height: 75px;
+    padding: 12px;
+    border: 1px solid #dce5df;
+    border-radius: 8px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+}
+
+.reopen-remarks:focus {
+    border-color: #245444;
+}
+
+.reopen-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.reopen-approve,
+.reopen-reject {
+    padding: 11px 22px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.reopen-approve {
+    background: #245444;
+    color: white;
+}
+
+.reopen-approve:hover {
+    background: #183d32;
+}
+
+.reopen-reject {
+    background: #f8e9e7;
+    color: #a13f36;
+}
+
+.reopen-reject:hover {
+    background: #f2d7d3;
+}
+
+.reopen-approve:disabled,
+.reopen-reject:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 650px) {
+    .reopen-panel {
+        padding: 20px;
+    }
+
+    .reopen-header-actions {
+        flex-wrap: wrap;
+    }
+
+    .reopen-card-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .reopen-actions {
+        flex-wrap: wrap;
+    }
+}
+
+
+.reports-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 22px;
+}
+
+#toggle-reports-button {
+    background: #e0f2ed;
+    color: #123b35;
+    padding: 12px 28px;
+    border: 1px solid #c8e4d9;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+#toggle-reports-button:hover {
+    background: #123b35;
+    color: #ffffff;
+}
+
+
+
+/* Issue Title */
+.table-wrapper td strong {
+    color: #24483B;
+    font-weight: 700;
+}
+
+/* Update Status Dropdown */
+.table-wrapper td select {
+    font-size: 15px;
+    font-weight: 600;
+    color: #24483B;
+    background-color: #F8FBF8;
+    border: 1px solid #C8D9CE;
+}
+
+.table-wrapper td select option {
+    font-size: 15px;
+    font-weight: 600;
+    color: #24483B;
+    background-color: #F8FBF8;
+}
+
+
+
+
+/* Optional Remarks */
+.table-wrapper td textarea {
+    font-size: 15px;
+    color: #24483B;
+    background-color: #F8FBF8;
+    border: 1px solid #C8D9CE;
+}
+
+.table-wrapper td textarea::placeholder {
+    color: #64748B;
+    opacity: 1;
+}
+
+/* Table Action Buttons Hover Effect */
+.table-wrapper td button {
+    transition: all 0.3s ease;
+}
+
+.table-wrapper td button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 5px 12px rgba(36, 72, 59, 0.18);
+}
+
+#refresh-reopen-button {
+    font-size: 16px;
+    padding: 12px 20px;
+    transition: all 0.3s ease;
+}
+
+#refresh-reopen-button:hover {
+    transform: translateY(-3px) scale(1.05);
+    background: #c8e8dc;
+    box-shadow: 0 5px 12px rgba(36, 72, 59, 0.18);
+}
+
+
+#refresh-button {
+    font-size: 16px;
+    padding: 12px 22px;
+    transition: all 0.3s ease;
+}
+
+#refresh-button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 5px 12px rgba(36, 72, 59, 0.18);
+}
+
+
+/* Hide Authority Report Details Scrollbar */
+#authorityReportDetailsModal .status-history-content {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+#authorityReportDetailsModal .status-history-content::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+}
+
+/* Fit all report details inside the screen */
+
+#authorityReportDetailsModal .status-history-content {
+    padding: 16px 26px;
+}
+
+#authorityReportDetailsModal .status-history-heading {
+    margin-bottom: 16px;
+}
+
+#authorityReportDetailsModal .status-history-heading h2 {
+    margin: 7px 0 5px;
+}
+
+#authorityReportDetailsModal .status-history-heading p {
+    margin: 0;
+}
+
+#authorityReportDetailsModal .report-details-grid {
+    gap: 8px;
+}
+
+#authorityReportDetailsModal .report-detail-card {
+    padding: 10px 16px;
+}
+
+#authorityReportDetailsModal .report-detail-label {
+    margin-bottom: 6px;
+}
+
+
+/* Dark Green Typography - Report Details */
+
+#authorityReportDetailsModal .status-history-label {
+    color: #294438;
+}
+
+#authorityReportDetailsModal .status-history-heading h2 {
+    color: #20382e;
+}
+
+#authorityReportDetailsModal .status-history-heading p {
+    color: #40584b;
+}
+
+#authorityReportDetailsModal .report-detail-label {
+    color: #40584b;
+}
+
+#authorityReportDetailsModal .report-detail-card strong {
+    color: #20382e;
+}
+
+#authorityReportDetailsModal .report-detail-card p {
+    color: #40584b;
+}
+
+
+/* ===== CIVICLEN AUTHORITY DASHBOARD REFINEMENT ===== */
+
+/* Welcome Section */
+.welcome h2 {
+    color: #20382e;
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.welcome p {
+    color: #617568;
+}
+
+/* Summary Cards */
+.summary-card {
+    position: relative;
+    border: 1px solid #dce8de;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.28s ease;
+}
+
+/* Subtle Top Accent */
+.summary-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #52745e;
+}
+
+.summary-card:nth-child(2)::before {
+    background: #c18a35;
+}
+
+.summary-card:nth-child(3)::before {
+    background: #5478bd;
+}
+
+.summary-card:nth-child(4)::before {
+    background: #3d9466;
+}
+
+/* Smooth Hover */
+.summary-card:hover {
+    transform: translateY(-4px);
+    border-color: #b9d0bf;
+    box-shadow: 0 12px 26px rgba(36, 72, 59, 0.12);
+}
+
+
+/* Road Match Button */
+
+.road-match-button {
+    background: #e0f2ed;
+    color: #123b35;
+    border: 1px solid #c8e4d9;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.road-match-button:hover {
+    background: #24483B;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(36, 72, 59, 0.15);
+}
+
+
+
+
+
+
+
+
+        
+    </style>
+</head>
+
+<body>
+    <header>
+        <div>
+            <h1>CivicLen</h1>
+            <p>Rajshahi City Corporation · Authority Portal</p>
+        </div>
+
+        
+<form action="{{ url_for('logout') }}" method="POST" style="margin: 0;">
+    <button class="logout" type="submit">Logout</button>
+</form>
+
+
+    </header>
+
+    <main>
+        <section class="welcome">
+            <h2>Welcome, {{ user_name }} 👋</h2>
+            <p>Review assigned road complaints and update their progress.</p>
+        </section>
+
+        <section class="summary">
+
+    <div class="summary-card">
+        <span>Total Assigned Reports</span>
+        <strong id="total-count">0</strong>
+    </div>
+
+    <div class="summary-card">
+        <span>Pending Reports</span>
+        <strong id="pending-count">0</strong>
+    </div>
+
+    <div class="summary-card">
+        <span>In Progress Reports</span>
+        <strong id="in-progress-count">0</strong>
+    </div>
+
+    <div class="summary-card">
+        <span>Resolved Reports</span>
+        <strong id="resolved-count">0</strong>
+    </div>
+
+</section>
+
+
+
+        <section class="reports-panel">
+            <div class="panel-heading">
+                <h2>Assigned Reports</h2>
+                <button class="refresh" id="refresh-button" type="button">
+                    Refresh
+                </button>
+            </div>
+
+            <div id="message" class="message" role="status">
+                Loading assigned reports...
+            </div>
+
+            <div class="report-filters">
+
+    <input
+        type="text"
+        id="report-search"
+        placeholder="Search by ID, issue or description..."
+    >
+
+    <select id="status-filter">
+        <option value="All">All Reports</option>
+        <option value="Pending">Pending</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Resolved">Resolved</option>
+    </select>
+
+    <button type="button" id="clear-filters">
+        Clear Filters
+    </button>
+
+</div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report</th>
+                            <th>Issue & Description</th>
+                            <th>Location</th>
+                            <th>Road Assignment</th>
+                            <th>Reported</th>
+                            <th>Status</th>
+                            <th>PHOTO</th>
+                            <th>DETAILS</th>
+                            <th>ROAD MATCH</th>
+                            <th>Update Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="reports-body"></tbody>
+                </table>
+            </div>
+
+            <div class="reports-pagination">
+                <button type="button" id="toggle-reports-button">
+                     See All Reports
+                </button>
+            </div>
+        </section>
+
+                <!-- REOPEN REQUESTS SECTION -->
+        <section class="reopen-panel">
+
+            <div class="panel-heading">
+                <div>
+                    <h2>Reopen Requests</h2>
+                    <p class="reopen-description">
+                        Review citizen requests for unresolved road complaints.
+                    </p>
+                </div>
+
+                <div class="reopen-header-actions">
+                    <span class="reopen-count" id="reopen-count">
+                        Pending: 0
+                    </span>
+
+                    <button
+                        class="refresh"
+                        type="button"
+                        id="refresh-reopen-button"
+                    >
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div id="reopen-message" class="reopen-message">
+                Loading reopen requests...
+            </div>
+
+            <div id="reopen-requests-container">
+            </div>
+
+        </section>
+        <!-- END REOPEN REQUESTS SECTION -->
+
+
+
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+
+
+    <script>
+        const reportsBody = document.getElementById("reports-body");
+        const message = document.getElementById("message");
+
+        function makeCell(text) {
+            const cell = document.createElement("td");
+            cell.textContent = text ?? "—";
+            return cell;
+        }
+
+        function getStatusClass(status) {
+            if (status === "Resolved") return "status status-resolved";
+            if (status === "In Progress") return "status status-progress";
+            return "status";
+        }
+
+        async function loadAssignedReports() {
+            message.textContent = "Loading assigned reports...";
+            message.className = "message";
+            reportsBody.replaceChildren();
+
+            try {
+                const response = await fetch("/api/reports", {
+                    credentials: "same-origin"
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || "Could not load reports.");
+                }
+
+                const reports = result.reports || [];
+
+                document.getElementById("total-count").textContent =
+                    reports.length;
+
+                document.getElementById("pending-count").textContent =
+                    reports.filter(r => r.status === "Pending").length;
+                
+                document.getElementById("in-progress-count").textContent =
+                    reports.filter(r => r.status === "In Progress").length;
+                
+                document.getElementById("resolved-count").textContent =
+                    reports.filter(r => r.status === "Resolved").length;
+
+                if (reports.length === 0) {
+                    message.textContent = "No reports have been assigned yet.";
+                    return;
+                }
+
+                message.textContent = "";
+
+                for (const report of reports) {
+                    const row = document.createElement("tr");
+                    console.log("Report ID:", report.report_id);
+
+                    row.dataset.searchText = [
+                        report.report_id,
+                        report.issue_type,
+                        report.description,
+                        report.latitude,
+                        report.longitude
+                    ].join(" ").toLowerCase();
+
+                    row.dataset.status = report.status || "";
+
+                    row.appendChild(makeCell(`#${report.report_id}`));
+
+                    const issueCell = document.createElement("td");
+                    const issueTitle = document.createElement("strong");
+                    issueTitle.textContent = report.issue_type || "Unknown issue";
+
+                    const description = document.createElement("p");
+                    description.textContent = report.description || "No description";
+                    description.style.whiteSpace = "pre-wrap";
+
+                    issueCell.append(issueTitle, description);
+                    row.appendChild(issueCell);
+
+                    const location = report.latitude != null &&
+                                     report.longitude != null
+                        ? `${report.latitude}, ${report.longitude}`
+                        : "Location unavailable";
+
+                    row.appendChild(makeCell(location));
+
+
+
+                    // Road Assignment column
+                    const roadCell = document.createElement("td");
+                        if (report.road_id) {
+
+    roadCell.textContent = `Road #${report.road_id}`;
+
+} else {
+
+    const searchInput = document.createElement("input");
+    searchInput.type = "text";
+    searchInput.placeholder = "Search road...";
+    searchInput.style.width = "100%";
+    searchInput.style.padding = "8px";
+    searchInput.style.marginBottom = "6px";
+
+    const searchButton = document.createElement("button");
+    searchButton.type = "button";
+    searchButton.textContent = "Search";
+    searchButton.style.background = "#24483B";
+    searchButton.style.color = "white";
+
+    const roadSelect = document.createElement("select");
+    roadSelect.style.width = "100%";
+    roadSelect.style.marginTop = "6px";
+    roadSelect.disabled = true;
+
+    roadSelect.innerHTML = `
+        <option value="">Select a road</option>
+    `;
+
+    const assignButton = document.createElement("button");
+    assignButton.type = "button";
+    assignButton.textContent = "Assign Road";
+    assignButton.style.background = "#38634F";
+    assignButton.style.color = "white";
+    assignButton.style.marginTop = "6px";
+    assignButton.style.width = "100%";
+
+    const mapButton = document.createElement("button");
+mapButton.type = "button";
+mapButton.textContent = "📍 View Map";
+mapButton.style.background = "#e0f2ed";
+mapButton.style.color = "#123b35";
+mapButton.style.width = "100%";
+mapButton.style.marginTop = "6px";
+
+roadCell.append(
+    searchInput,
+    searchButton,
+    roadSelect,
+    mapButton,
+    assignButton
+)
+
+mapButton.addEventListener("click", function () {
+    openRoadMapModal(report, roadSelect);
+});
+
+    searchButton.addEventListener("click", async () => {
+
+        const query = searchInput.value.trim();
+
+        if (query.length < 2) {
+            alert("Enter at least 2 characters to search.");
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `/api/roads/search?q=${encodeURIComponent(query)}`
+            );
+
+            const data = await response.json();
+
+            roadSelect.innerHTML = `
+                <option value="">Select a road</option>
+            `;
+
+            if (!response.ok || !data.success || !data.roads.length) {
+                alert("No matching roads found.");
+                roadSelect.disabled = true;
+                return;
+            }
+
+            data.roads.forEach(road => {
+                const option = document.createElement("option");
+
+                option.value = road.road_id;
+                option.textContent =
+                    `${road.road_name} (${road.road_type || "Unknown"})`;
+
+                roadSelect.appendChild(option);
+            });
+
+            roadSelect.disabled = false;
+
+        } catch (error) {
+            console.error("Road search error:", error);
+            alert("Could not search roads.");
+        }
+    });
+
+    assignButton.addEventListener("click", async () => {
+
+        const roadId = roadSelect.value;
+
+        if (!roadId) {
+            alert("Please select a road first.");
+            return;
+        }
+
+        assignButton.disabled = true;
+        assignButton.textContent = "Assigning...";
+
+        try {
+            const response = await fetch(
+                `/api/reports/${report.report_id}/assign-road`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        road_id: Number(roadId)
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(
+                    data.error || "Road assignment failed."
+                );
+            }
+
+            showAuthoritySuccessModal(
+                "Road Assigned Successfully",
+                "The report has been assigned to the selected road."
+            );
+
+            await loadAssignedReports();
+
+        } catch (error) {
+            console.error("Road assignment error:", error);
+
+            showAuthorityErrorModal(
+                "Road Assignment Failed",
+                error.message
+            );
+
+            assignButton.disabled = false;
+            assignButton.textContent = "Assign Road";
+        }
+    });
+}
+
+
+            
+                row.appendChild(roadCell);      
+
+
+
+
+
+
+
+
+                    const reportedAt = report.reported_at
+                        ? new Date(report.reported_at).toLocaleString()
+                        : "—";
+
+                    row.appendChild(makeCell(reportedAt));
+
+                    const statusCell = document.createElement("td");
+                    const badge = document.createElement("span");
+                    badge.className = getStatusClass(report.status);
+                    badge.textContent = report.status || "Unknown";
+                    statusCell.appendChild(badge);
+                    row.appendChild(statusCell);
+                    
+
+                    // Report Photo column
+const photoCell = document.createElement("td");
+const photoButton = document.createElement("button");
+
+photoButton.type = "button";
+photoButton.textContent = "View Photo";
+
+photoButton.addEventListener("click", async function () {
+    photoButton.disabled = true;
+    photoButton.textContent = "Loading...";
+
+    try {
+        const response = await fetch(
+            `/api/reports/${report.report_id}/images`,
+            { credentials: "same-origin" }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.error || "Could not load report photo."
+            );
+        }
+
+        if (!result.images || result.images.length === 0) {
+
+    const emptyModal = document.createElement("div");
+    emptyModal.id = "authorityPhotoModal";
+
+    Object.assign(emptyModal.style, {
+        position: "fixed",
+        inset: "0",
+        zIndex: "10000",
+        background: "rgba(18, 35, 32, 0.58)",
+        backdropFilter: "blur(6px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px"
+    });
+
+    const emptyContent = document.createElement("div");
+
+    Object.assign(emptyContent.style, {
+        position: "relative",
+        width: "min(100%, 520px)",
+        background: "#ffffff",
+        border: "1px solid #e5e9e3",
+        borderRadius: "22px",
+        padding: "32px 26px",
+        textAlign: "center",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.15)"
+    });
+
+    const closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.textContent = "×";
+
+    Object.assign(closeButton.style, {
+    position: "absolute",
+    top: "12px",
+    right: "18px",
+    width: "38px",
+    height: "38px",
+    border: "none",
+    borderRadius: "50%",
+    background: "transparent",
+    fontSize: "30px",
+    lineHeight: "1",
+padding: "0",
+    cursor: "pointer",
+    color: "#294438",
+    display: "grid",
+    placeItems: "center",
+    transition: "background 0.2s ease, transform 0.2s ease"
+});
+
+closeButton.addEventListener("mouseenter", function () {
+    closeButton.style.background = "#e2eae0";
+    closeButton.style.transform = "rotate(90deg)";
+});
+
+closeButton.addEventListener("mouseleave", function () {
+    closeButton.style.background = "transparent";
+    closeButton.style.transform = "rotate(0deg)";
+});
+
+    const label = document.createElement("span");
+    label.textContent = "CIVICLEN REPORT";
+
+    Object.assign(label.style, {
+    display: "block",
+    color: "#617568",
+    fontSize: "13px",
+    fontWeight: "700",
+    letterSpacing: "2px",
+    marginBottom: "12px"
+});
+
+    const icon = document.createElement("div");
+    icon.textContent = "📷";
+    icon.style.fontSize = "42px";
+    icon.style.marginBottom = "14px";
+
+    const title = document.createElement("h2");
+    title.textContent = "No Photo Available";
+
+    Object.assign(title.style, {
+        color: "#294438",
+        fontFamily: "Georgia, serif",
+        fontSize: "24px",
+        margin: "0 0 12px"
+    });
+
+    const message = document.createElement("p");
+    message.textContent =
+        "No photo was uploaded for this report by the citizen.";
+
+    Object.assign(message.style, {
+    color: "#52665a",
+    fontSize: "19px",
+    lineHeight: "1.8",
+    margin: "0"
+});
+
+    function closeEmptyModal() {
+        emptyModal.remove();
+    }
+
+    closeButton.addEventListener("click", closeEmptyModal);
+
+    emptyModal.addEventListener("click", function (event) {
+        if (event.target === emptyModal) {
+            closeEmptyModal();
+        }
+    });
+
+    emptyContent.append(
+        closeButton,
+        label,
+        icon,
+        title,
+        message
+    );
+
+    emptyModal.appendChild(emptyContent);
+    document.body.appendChild(emptyModal);
+
+    return;
+}
+
+        const image = result.images[0];
+
+        if (!image.url) {
+            alert("The photo URL is unavailable.");
+            return;
+        }
+
+        const imageUrl = new URL(
+            image.url,
+            window.location.origin
+        ).href;
+
+        // Create the photo modal if it does not exist
+        let modal = document.getElementById("authorityPhotoModal");
+
+        if (!modal) {
+            modal = document.createElement("div");
+            modal.id = "authorityPhotoModal";
+
+            Object.assign(modal.style, {
+                position: "fixed",
+                inset: "0",
+                zIndex: "10000",
+                background: "rgba(0, 0, 0, 0.8)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "20px",
+                boxSizing: "border-box"
+            });
+
+            const content = document.createElement("div");
+
+            Object.assign(content.style, {
+                position: "relative",
+                background: "#ffffff",
+                padding: "20px",
+                borderRadius: "16px",
+                maxWidth: "900px",
+                maxHeight: "90vh",
+                width: "100%",
+                boxSizing: "border-box",
+                textAlign: "center"
+            });
+
+            const closeButton = document.createElement("button");
+            closeButton.type = "button";
+            closeButton.textContent = "×";
+            closeButton.setAttribute("aria-label", "Close photo");
+
+            Object.assign(closeButton.style, {
+                position: "absolute",
+                top: "8px",
+                right: "12px",
+                border: "none",
+                background: "#ffffff",
+                fontSize: "32px",
+                cursor: "pointer",
+                color: "#20382e"
+            });
+
+            closeButton.addEventListener("click", function () {
+                modal.remove();
+            });
+
+            const photo = document.createElement("img");
+            photo.id = "authorityPhotoPreview";
+            photo.alt = "Citizen's reported road issue";
+
+            Object.assign(photo.style, {
+                display: "block",
+                maxWidth: "100%",
+                maxHeight: "75vh",
+                objectFit: "contain",
+                margin: "25px auto 0"
+            });
+
+            photo.addEventListener("error", function () {
+                photo.alt = "The image could not be displayed.";
+                alert("The photo could not be displayed.");
+            });
+
+            content.append(closeButton, photo);
+            modal.appendChild(content);
+
+            modal.addEventListener("click", function (event) {
+                if (event.target === modal) {
+                    modal.remove();
+                }
+            });
+
+            document.body.appendChild(modal);
+        }
+
+        const photoPreview = document.getElementById(
+            "authorityPhotoPreview"
+        );
+
+        photoPreview.src = imageUrl;
+
+    } catch (error) {
+     showAuthorityErrorModal(
+    "Unable to Load Photo",
+    error.message || "Something went wrong while loading the photo."
+    );
+        console.error("View Photo error:", error);
+    } finally {
+        photoButton.disabled = false;
+        photoButton.textContent = "View Photo";
+    }
+});
+
+photoCell.appendChild(photoButton);
+row.appendChild(photoCell);
+
+
+// Report Details column
+const detailsCell = document.createElement("td");
+const detailsButton = document.createElement("button");
+
+detailsButton.type = "button";
+detailsButton.textContent = "View Details";
+
+detailsButton.addEventListener("click", function () {
+    showAuthorityReportDetails({
+        report_id: report.report_id,
+        issue_type: report.issue_type,
+        description: report.description,
+        latitude: report.latitude,
+        longitude: report.longitude,
+        ward_number: report.ward_number,
+        reported_at: report.reported_at,
+        status: report.status
+    });
+});
+
+detailsCell.appendChild(detailsButton);
+row.appendChild(detailsCell);
+// Road Matching column
+const roadMatchCell = document.createElement("td");
+
+const roadMatchButton = document.createElement("button");
+roadMatchButton.type = "button";
+roadMatchButton.textContent = "Road Match";
+roadMatchButton.className = "road-match-button";
+
+roadMatchButton.addEventListener("click", function () {
+    openRoadMatchModal(report);
+});
+
+roadMatchCell.appendChild(roadMatchButton);
+row.appendChild(roadMatchCell);
+
+
+
+                    const actionCell = document.createElement("td");
+
+                    const form = document.createElement("form");
+                    const statusSelect = document.createElement("select");
+
+                    for (const status of [
+                        "Pending",
+                        "In Progress",
+                        "Resolved"
+                    ]) {
+                        const option = document.createElement("option");
+                        option.value = status;
+                        option.textContent = status;
+                        option.selected = status === report.status;
+                        statusSelect.appendChild(option);
+                    }
+
+                    const remarks = document.createElement("textarea");
+                    remarks.placeholder = "Optional remarks";
+                    remarks.maxLength = 1000;
+                    remarks.rows = 2;
+
+                    const updateButton = document.createElement("button");
+                    updateButton.type = "submit";
+                    updateButton.className = "update-button";
+                    updateButton.textContent = "Update";
+
+                    form.append(statusSelect, remarks, updateButton);
+
+                    form.addEventListener("submit", async event => {
+                        event.preventDefault();
+                        updateButton.disabled = true;
+
+                        try {
+                            const updateResponse = await fetch(
+                                `/api/reports/${report.report_id}/status`,
+                                {
+                                    method: "POST",
+                                    credentials: "same-origin",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        status: statusSelect.value,
+                                        remarks: remarks.value
+                                    })
+                                }
+                            );
+
+                            const updateResult = await updateResponse.json();
+
+                            if (!updateResponse.ok || !updateResult.success) {
+                                throw new Error(
+                                    updateResult.error || "Status update failed."
+                                );
+                            }
+                                showAuthoritySuccessModal(
+                                    "Report Status Updated Successfully",
+                                     "The report status has been updated successfully."
+                                );
+                            await loadAssignedReports();
+
+                        } catch (error) {
+                            showAuthorityErrorModal(
+                                "Status Update Failed",
+                                error.message || "Could not update the report status."
+                            );
+                        } finally {
+                            updateButton.disabled = false;
+                        }
+                    });
+
+                    actionCell.appendChild(form);
+                    row.appendChild(actionCell);
+
+                    reportsBody.appendChild(row);
+                }
+                showAllReports = false;
+                applyReportFilters();
+
+            } catch (error) {
+                message.textContent = error.message;
+                message.className = "message error";
+            }
+        }
+
+
+
+
+
+async function loadReopenRequests() {
+
+    const container = document.getElementById(
+        "reopen-requests-container"
+    );
+
+    const message = document.getElementById(
+        "reopen-message"
+    );
+
+    const count = document.getElementById(
+        "reopen-count"
+    );
+
+    container.replaceChildren();
+
+    message.textContent = "Loading reopen requests...";
+    message.style.display = "block";
+
+    try {
+
+        const response = await fetch(
+            "/api/authority/reopen-requests",
+            {
+                credentials: "same-origin"
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.error || "Could not load reopen requests."
+            );
+        }
+
+        const requests = result.requests || [];
+
+        count.textContent = `Pending: ${result.total || 0}`;
+
+        if (requests.length === 0) {
+            message.textContent = "No pending reopen requests.";
+            return;
+        }
+
+        message.style.display = "none";
+
+        for (const item of requests) {
+
+            const card = document.createElement("div");
+            card.className = "reopen-card";
+
+            const header = document.createElement("div");
+            header.className = "reopen-card-header";
+
+            const heading = document.createElement("h3");
+            heading.textContent =
+                `Request #${item.request_id} | Report #${item.report_id}`;
+
+            const badge = document.createElement("span");
+            badge.className = "reopen-status";
+            badge.textContent = item.request_status;
+
+            header.append(heading, badge);
+
+            const info = document.createElement("div");
+            info.className = "reopen-info";
+
+            const citizen = document.createElement("div");
+            citizen.textContent =
+                `Citizen: ${item.citizen_name || "Unknown"}`;
+
+            const issue = document.createElement("div");
+            issue.textContent =
+                `Issue: ${item.issue_type || "Unknown"}`;
+
+            const status = document.createElement("div");
+            status.textContent =
+                `Current Report Status: ${item.report_status}`;
+
+            const date = document.createElement("div");
+            date.textContent =
+                `Requested: ${
+                    item.requested_at
+                        ? new Date(item.requested_at).toLocaleString()
+                        : "Unknown"
+                }`;
+
+            info.append(citizen, issue, status, date);
+
+            const reason = document.createElement("div");
+            reason.className = "reopen-reason";
+
+            const reasonTitle = document.createElement("strong");
+            reasonTitle.textContent = "Citizen's Reopen Reason";
+
+            const reasonText = document.createElement("p");
+            reasonText.textContent = item.reason || "No reason provided.";
+
+            reason.append(reasonTitle, reasonText);
+
+            const description = document.createElement("p");
+            description.className = "reopen-info";
+            description.textContent =
+                `Report Description: ${item.description || "No description"}`;
+
+            const remarks = document.createElement("textarea");
+            remarks.className = "reopen-remarks";
+            remarks.placeholder = "Authority remarks (optional)";
+            remarks.maxLength = 500;
+
+            const actions = document.createElement("div");
+            actions.className = "reopen-actions";
+
+            const approveButton = document.createElement("button");
+            approveButton.type = "button";
+            approveButton.className = "reopen-approve";
+            approveButton.textContent = "Approve Request";
+
+            const rejectButton = document.createElement("button");
+            rejectButton.type = "button";
+            rejectButton.className = "reopen-reject";
+            rejectButton.textContent = "Reject Request";
+
+            async function reviewRequest(action) {
+
+                approveButton.disabled = true;
+                rejectButton.disabled = true;
+
+                try {
+
+                    const reviewResponse = await fetch(
+                        `/api/authority/reopen-requests/${item.request_id}/review`,
+                        {
+                            method: "POST",
+                            credentials: "same-origin",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                action: action,
+                                remarks: remarks.value.trim()
+                            })
+                        }
+                    );
+
+                    const reviewResult = await reviewResponse.json();
+
+                    if (!reviewResponse.ok || !reviewResult.success) {
+                        throw new Error(
+                            reviewResult.error ||
+                            "Could not review this request."
+                        );
+                    }
+
+                    showAuthoritySuccessModal(
+                        `Request ${action}`,
+                        reviewResult.message
+                    );
+
+                    await loadReopenRequests();
+                    await loadAssignedReports();
+
+                } catch (error) {
+
+                    showAuthorityErrorModal(
+                        "Request Review Failed",
+                        error.message
+                    );
+
+                } finally {
+
+                    approveButton.disabled = false;
+                    rejectButton.disabled = false;
+
+                }
+            }
+
+            approveButton.addEventListener("click", function () {
+                reviewRequest("Approved");
+            });
+
+            rejectButton.addEventListener("click", function () {
+                reviewRequest("Rejected");
+            });
+
+            actions.append(approveButton, rejectButton);
+
+            card.append(
+                header,
+                info,
+                reason,
+                description,
+                remarks,
+                actions
+            );
+
+            container.appendChild(card);
+        }
+
+    } catch (error) {
+
+        message.textContent = error.message;
+        message.style.display = "block";
+
+        showAuthorityErrorModal(
+            "Could Not Load Reopen Requests",
+            error.message
+        );
+    }
+}
+
+
+
+
+
+
+
+        // Search and Filter Functionality
+
+let showAllReports = false;
+
+function applyReportFilters() {
+
+    const searchValue = document
+        .getElementById("report-search")
+        .value.trim().toLowerCase();
+
+    const statusValue = document
+        .getElementById("status-filter")
+        .value;
+
+    const rows = document.querySelectorAll("#reports-body tr");
+
+    const isSearching = searchValue !== "";
+    const isFiltering = statusValue !== "All";
+
+    let visibleCount = 0;
+
+    rows.forEach((row, index) => {
+
+        const searchText = row.dataset.searchText || "";
+        const rowStatus = row.dataset.status || "";
+
+        const reportId = String(
+            row.cells[0]?.textContent || ""
+        ).replace("#", "").trim();
+
+        const normalizedSearchValue = searchValue.replace(/^#/, "");
+        const isIdSearch = /^#?\d+$/.test(searchValue);
+
+        const matchesSearch = isIdSearch
+            ? reportId === normalizedSearchValue
+            : searchText.includes(searchValue);
+
+        const matchesStatus =
+            statusValue === "All" || rowStatus === statusValue;
+
+        const matches = matchesSearch && matchesStatus;
+
+        const shouldShow = matches &&
+            (showAllReports || isSearching || isFiltering || index < 2);
+
+        row.style.display = shouldShow ? "" : "none";
+
+        if (shouldShow) {
+            visibleCount++;
+        }
+    });
+
+    const message = document.getElementById("message");
+
+    message.textContent = visibleCount === 0
+        ? "No reports match your search or filter."
+        : "";
+
+    message.className = "message";
+
+    const toggleButton = document.getElementById(
+        "toggle-reports-button"
+    );
+
+    toggleButton.style.display =
+        isSearching || isFiltering || rows.length <= 4
+            ? "none"
+            : "inline-block";
+
+    toggleButton.textContent = showAllReports
+        ? "Show Less"
+        : "See All Reports";
+}
+
+
+
+document.getElementById("toggle-reports-button").addEventListener(
+    "click",
+    function () {
+
+        showAllReports = !showAllReports;
+
+        applyReportFilters();
+    }
+);
+
+
+
+// Search input event
+document.getElementById("report-search").addEventListener(
+    "input",
+    applyReportFilters
+);
+
+
+// Status filter event
+document.getElementById("status-filter").addEventListener(
+    "change",
+    applyReportFilters
+);
+
+
+// Clear filters event
+document.getElementById("clear-filters").addEventListener(
+    "click",
+    function () {
+        document.getElementById("report-search").value = "";
+        document.getElementById("status-filter").value = "All";
+
+        applyReportFilters();
+    }
+);
+
+
+
+
+        document.getElementById("refresh-button").addEventListener(
+            "click",
+            loadAssignedReports
+        );
+
+        loadAssignedReports();
+loadReopenRequests();
+
+document.getElementById("refresh-reopen-button").addEventListener(
+    "click",
+    loadReopenRequests
+);
+
+
+
+// ===== Authority Report Details Modal =====
+
+function closeAuthorityReportDetailsModal() {
+    const modal = document.getElementById(
+        "authorityReportDetailsModal"
+    );
+
+    if (modal) {
+        modal.style.display = "none";
+    }
+}
+
+function showAuthorityReportDetails(report) {
+
+    
+    const modal = document.getElementById(
+        "authorityReportDetailsModal"
+    );
+
+    if (!modal) {
+        console.error("Authority Report Details Modal not found.");
+        return;
+    }
+
+    document.getElementById("authorityDetailReportId").textContent =
+        "#" + (report.report_id ?? "—");
+
+    document.getElementById("authorityDetailReportIssue").textContent =
+        report.issue_type || "Unknown issue";
+
+    document.getElementById("authorityDetailReportDescription").textContent =
+        report.description || "No description provided.";
+
+    const hasLocation =
+        report.latitude != null && report.longitude != null;
+
+    document.getElementById("authorityDetailReportLocation").textContent =
+        hasLocation
+            ? `${report.latitude}, ${report.longitude}`
+            : "Location unavailable";
+
+    document.getElementById("authorityDetailReportWard").textContent =
+    report.ward_number != null
+        ? `Ward ${report.ward_number}`
+        : "Ward unavailable";
+
+
+
+
+    let formattedDate = "Date unavailable";
+
+    if (report.reported_at) {
+        const parsedDate = new Date(report.reported_at);
+
+        if (!Number.isNaN(parsedDate.getTime())) {
+            formattedDate = parsedDate.toLocaleString();
+        }
+    }
+
+    document.getElementById("authorityDetailReportDate").textContent =
+        formattedDate;
+
+    document.getElementById("authorityDetailReportStatus").textContent =
+        report.status || "Unknown";
+
+    modal.style.display = "flex";
+}
+
+
+// ===== Road Matching Information Modal =====
+
+function openRoadMatchModal(report) {
+
+    const modal = document.getElementById("roadMatchModal");
+
+    if (!modal) {
+        console.error("Road Match Modal not found.");
+        return;
+    }
+
+    document.getElementById("roadMatchRoadId").textContent =
+        report.road_id != null
+            ? `Road #${report.road_id}`
+            : "Not assigned";
+
+    document.getElementById("roadMatchConfidence").textContent =
+        report.road_match_confidence || "Not available";
+
+    document.getElementById("roadMatchDistance").textContent =
+        report.road_match_distance_meters != null
+            ? `${Number(report.road_match_distance_meters).toFixed(2)} meters`
+            : "Not available";
+
+    document.getElementById("roadMatchGap").textContent =
+        report.road_match_distance_gap_meters != null
+            ? `${Number(report.road_match_distance_gap_meters).toFixed(2)} meters`
+            : "Not available";
+
+    document.getElementById("roadMatchReason").textContent =
+        report.road_match_reason || "No matching reason available";
+
+    document.getElementById("roadMatchReviewStatus").textContent =
+        report.road_review_status || "Not available";
+
+    modal.style.display = "flex";
+}
+
+
+function closeRoadMatchModal() {
+
+    const modal = document.getElementById("roadMatchModal");
+
+    if (modal) {
+        modal.style.display = "none";
+    }
+}
+
+
+
+
+// Close when clicking outside the modal
+document.addEventListener("click", function (event) {
+    const modal = document.getElementById(
+        "authorityReportDetailsModal"
+    );
+
+    if (modal && event.target === modal) {
+        closeAuthorityReportDetailsModal();
+    }
+});
+
+// Close using the Escape key
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+        closeAuthorityReportDetailsModal();
+    }
+});
+
+    
+
+// ===== CIVICLEN SUCCESS MODAL =====
+
+function showAuthoritySuccessModal(titleText, messageText) {
+
+    const existingModal = document.getElementById(
+        "authoritySuccessModal"
+    );
+
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const modal = document.createElement("div");
+    modal.id = "authoritySuccessModal";
+
+    Object.assign(modal.style, {
+        position: "fixed",
+        inset: "0",
+        zIndex: "10001",
+        background: "rgba(18, 35, 32, 0.58)",
+        backdropFilter: "blur(6px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px"
+    });
+
+    const content = document.createElement("div");
+
+    Object.assign(content.style, {
+        position: "relative",
+        width: "min(100%, 520px)",
+        background: "#ffffff",
+        border: "1px solid #e5e9e3",
+        borderRadius: "22px",
+        padding: "36px 26px",
+        textAlign: "center",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.15)"
+    });
+
+    const closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.textContent = "×";
+
+    Object.assign(closeButton.style, {
+        position: "absolute",
+        top: "12px",
+        right: "18px",
+        border: "none",
+        background: "transparent",
+        fontSize: "30px",
+        cursor: "pointer",
+        color: "#294438"
+    });
+
+    const label = document.createElement("span");
+    label.textContent = "CIVICLEN REPORT";
+
+    Object.assign(label.style, {
+        display: "block",
+        color: "#8a9b8e",
+        fontSize: "11px",
+        fontWeight: "700",
+        letterSpacing: "2px",
+        marginBottom: "20px"
+    });
+
+    const icon = document.createElement("div");
+    icon.textContent = "✓";
+
+    Object.assign(icon.style, {
+        width: "58px",
+        height: "58px",
+        lineHeight: "58px",
+        borderRadius: "50%",
+        background: "#eaf3eb",
+        color: "#294438",
+        fontSize: "32px",
+        fontWeight: "700",
+        margin: "0 auto 18px"
+    });
+
+    const title = document.createElement("h2");
+    title.textContent = titleText;
+
+    Object.assign(title.style, {
+        color: "#294438",
+        fontFamily: "Georgia, serif",
+        fontSize: "24px",
+        margin: "0 0 12px"
+    });
+
+    const message = document.createElement("p");
+    message.textContent = messageText;
+
+    Object.assign(message.style, {
+        color: "#718076",
+        fontSize: "14px",
+        lineHeight: "1.7",
+        margin: "0"
+    });
+
+    function closeModal() {
+        modal.remove();
+    }
+
+    closeButton.addEventListener("click", closeModal);
+
+    modal.addEventListener("click", function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    content.append(
+        closeButton,
+        label,
+        icon,
+        title,
+        message
+    );
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+}
+
+
+
+
+// ===== ROAD MAP MODAL =====
+
+let roadSelectionMap = null;
+let nearbyRoadLayer = null;
+let selectedRoadLayer = null;
+
+async function openRoadMapModal(report, roadSelect) {
+
+    const modal = document.getElementById("roadMapModal");
+    const mapMessage = document.getElementById("roadMapMessage");
+
+    modal.style.display = "flex";
+    mapMessage.textContent = "Loading nearby roads...";
+
+    try {
+
+        const response = await fetch(
+            `/api/reports/${report.report_id}/nearby-roads`,
+            { credentials: "same-origin" }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.error || "Could not load nearby roads."
+            );
+        }
+
+        if (!roadSelectionMap) {
+
+            roadSelectionMap = L.map("roadSelectionMap");
+
+            L.tileLayer(
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+                    attribution: "&copy; OpenStreetMap contributors"
+                }
+            ).addTo(roadSelectionMap);
+        }
+
+        if (nearbyRoadLayer) {
+            roadSelectionMap.removeLayer(nearbyRoadLayer);
+        }
+
+        const location = data.report_location;
+
+        L.marker([
+            location.latitude,
+            location.longitude
+        ])
+        .addTo(roadSelectionMap)
+        .bindPopup("Citizen Report Location");
+
+        nearbyRoadLayer = L.geoJSON(data.roads, {
+
+    style: {
+        color: "#38634F",
+        weight: 5
+    },
+
+    onEachFeature: function (feature, layer) {
+
+        const road = feature.properties;
+
+        layer.bindPopup(`
+            <strong>${road.road_name}</strong><br>
+            Road Type: ${road.road_type || "Unknown"}<br>
+            Distance: ${road.distance_m} m
+        `);
+
+        layer.on("click", function () {
+
+            if (selectedRoadLayer) {
+                nearbyRoadLayer.resetStyle(selectedRoadLayer);
+            }
+
+            selectedRoadLayer = layer;
+
+            layer.setStyle({
+                color: "#D97706",
+                weight: 8
+            });
+
+            const roadId = String(road.road_id);
+
+            let option = Array.from(
+                roadSelect.options
+            ).find(item => item.value === roadId);
+
+            if (!option) {
+                option = document.createElement("option");
+                option.value = roadId;
+                option.textContent =
+                    `${road.road_name} (${road.road_type || "Unknown"})`;
+
+                roadSelect.appendChild(option);
+            }
+
+            roadSelect.value = roadId;
+            roadSelect.disabled = false;
+
+            layer.openPopup();
+
+        });
+    }
+
+}).addTo(roadSelectionMap);
+
+        roadSelectionMap.setView(
+            [location.latitude, location.longitude],
+            16
+        );
+
+        setTimeout(() => {
+            roadSelectionMap.invalidateSize();
+        }, 200);
+
+        mapMessage.textContent =
+            `${data.total} nearby roads found. Select a road from the map.`;
+
+    } catch (error) {
+
+        console.error("Road map error:", error);
+
+        mapMessage.textContent = error.message;
+    }
+}
+
+// Close Road Map Modal
+document.addEventListener("click", function (event) {
+
+    if (event.target.closest("#closeRoadMap")) {
+
+        document.getElementById("roadMapModal").style.display = "none";
+
+    }
+
+});
+
+
+
+
+// ===== CIVICLEN ERROR MODAL =====
+
+function showAuthorityErrorModal(titleText, messageText) {
+
+    const existingModal = document.getElementById(
+        "authorityErrorModal"
+    );
+
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    const modal = document.createElement("div");
+    modal.id = "authorityErrorModal";
+
+    Object.assign(modal.style, {
+        position: "fixed",
+        inset: "0",
+        zIndex: "10002",
+        background: "rgba(18, 35, 32, 0.58)",
+        backdropFilter: "blur(6px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px"
+    });
+
+    const content = document.createElement("div");
+
+    Object.assign(content.style, {
+        position: "relative",
+        width: "min(100%, 520px)",
+        background: "#ffffff",
+        border: "1px solid #e5e9e3",
+        borderRadius: "22px",
+        padding: "36px 26px",
+        textAlign: "center",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.15)"
+    });
+
+    const closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.textContent = "×";
+
+    Object.assign(closeButton.style, {
+        position: "absolute",
+        top: "12px",
+        right: "18px",
+        border: "none",
+        background: "transparent",
+        fontSize: "30px",
+        cursor: "pointer",
+        color: "#294438"
+    });
+
+    const label = document.createElement("span");
+    label.textContent = "CIVICLEN REPORT";
+
+    Object.assign(label.style, {
+        display: "block",
+        color: "#8a9b8e",
+        fontSize: "11px",
+        fontWeight: "700",
+        letterSpacing: "2px",
+        marginBottom: "20px"
+    });
+
+    const icon = document.createElement("div");
+    icon.textContent = "!";
+
+    Object.assign(icon.style, {
+        width: "58px",
+        height: "58px",
+        lineHeight: "58px",
+        borderRadius: "50%",
+        background: "#f9eded",
+        color: "#b65c5c",
+        fontSize: "32px",
+        fontWeight: "700",
+        margin: "0 auto 18px"
+    });
+
+    const title = document.createElement("h2");
+    title.textContent = titleText;
+
+    Object.assign(title.style, {
+        color: "#294438",
+        fontFamily: "Georgia, serif",
+        fontSize: "24px",
+        margin: "0 0 12px"
+    });
+
+    const message = document.createElement("p");
+    message.textContent = messageText;
+
+    Object.assign(message.style, {
+        color: "#718076",
+        fontSize: "14px",
+        lineHeight: "1.7",
+        margin: "0"
+    });
+
+    function closeModal() {
+        modal.remove();
+    }
+
+    closeButton.addEventListener("click", closeModal);
+
+    modal.addEventListener("click", function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    content.append(
+        closeButton,
+        label,
+        icon,
+        title,
+        message
+    );
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+}
+
+
+
+
+
+
+        
+    </script>
+l
+<!-- Authority Report Details Modal -->
+<div id="authorityReportDetailsModal"
+     class="status-history-modal"
+     style="display: none;">
+
+    <div class="status-history-content">
+
+        <button
+            type="button"
+            class="status-history-close"
+            onclick="closeAuthorityReportDetailsModal()"
+            aria-label="Close"
+        >&times;</button>
+
+        <div class="status-history-heading">
+            <span class="status-history-label">CIVICLEN AUTHORITY</span>
+            <h2>Report Details</h2>
+            <p>Review the complete information submitted by the citizen.</p>
+        </div>
+
+        <div class="report-details-grid">
+
+            <div class="report-detail-card">
+                <span class="report-detail-label">REPORT ID</span>
+                <strong id="authorityDetailReportId">—</strong>
+            </div>
+
+            <div class="report-detail-card">
+                <span class="report-detail-label">CURRENT STATUS</span>
+                <strong id="authorityDetailReportStatus">—</strong>
+            </div>
+
+            <div class="report-detail-card report-detail-full">
+                <span class="report-detail-label">ISSUE TYPE</span>
+                <strong id="authorityDetailReportIssue">—</strong>
+            </div>
+
+            <div class="report-detail-card report-detail-full">
+                <span class="report-detail-label">DESCRIPTION</span>
+                <p id="authorityDetailReportDescription">—</p>
+            </div>
+
+            <div class="report-detail-card report-detail-full">
+                <span class="report-detail-label">LOCATION</span>
+                <p id="authorityDetailReportLocation">—</p>
+            </div>
+            
+
+            <div class="report-detail-card report-detail-full">
+    <span class="report-detail-label">WARD NUMBER</span>
+    <p id="authorityDetailReportWard">—</p>
+</div>
+
+
+
+
+            <div class="report-detail-card report-detail-full">
+                <span class="report-detail-label">DATE REPORTED</span>
+                <p id="authorityDetailReportDate">—</p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Road Matching Information Modal -->
+<div id="roadMatchModal"
+     class="status-history-modal"
+     style="display: none;">
+
+    <div class="status-history-content">
+
+        <button
+            type="button"
+            class="status-history-close"
+            onclick="closeRoadMatchModal()"
+            aria-label="Close"
+        >&times;</button>
+
+        <div class="status-history-heading">
+            <span class="status-history-label">CIVICLEN AUTHORITY</span>
+
+            <h2>Road Matching Information</h2>
+
+            <p>
+                Automatic road identification details for this report.
+            </p>
+        </div>
+
+        <div class="report-details-grid">
+
+            <div class="report-detail-card">
+                <span class="report-detail-label">ROAD ID</span>
+                <strong id="roadMatchRoadId">—</strong>
+            </div>
+
+            <div class="report-detail-card">
+                <span class="report-detail-label">MATCH CONFIDENCE</span>
+                <strong id="roadMatchConfidence">—</strong>
+            </div>
+
+            <div class="report-detail-card">
+                <span class="report-detail-label">DISTANCE</span>
+                <strong id="roadMatchDistance">—</strong>
+            </div>
+
+            <div class="report-detail-card">
+                <span class="report-detail-label">DISTANCE GAP</span>
+                <strong id="roadMatchGap">—</strong>
+            </div>
+
+            <div class="report-detail-card report-detail-full">
+                <span class="report-detail-label">MATCH REASON</span>
+                <p id="roadMatchReason">—</p>
+            </div>
+
+            <div class="report-detail-card report-detail-full">
+                <span class="report-detail-label">REVIEW STATUS</span>
+                <strong id="roadMatchReviewStatus">—</strong>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+<!-- Road Selection Map Modal -->
+<div id="roadMapModal" style="
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(18, 35, 32, 0.65);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+">
+
+    <div style="
+        background: white;
+        width: min(100%, 1000px);
+        border-radius: 18px;
+        padding: 22px;
+        position: relative;
+    ">
+
+        <button
+            type="button"
+            id="closeRoadMap"
+            style="
+                float: right;
+                background: #e0f2ed;
+                color: #123b35;
+                font-size: 20px;
+            "
+        >×</button>
+
+        <h2 style="color: #24483B;">
+            Select Road from Map
+        </h2>
+
+        <p id="roadMapMessage">
+            Loading nearby roads...
+        </p>
+
+        <div
+            id="roadSelectionMap"
+            style="
+                width: 100%;
+                height: 500px;
+                border-radius: 12px;
+            "
+        ></div>
+
+    </div>
+</div>
+
+
+
+
+</body>
+</html>
+

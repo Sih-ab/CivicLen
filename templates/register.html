@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | CivicLen</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #102b25, #1d493b);
+            color: #19352d;
+        }
+
+        .register-card {
+            width: 100%;
+            max-width: 440px;
+            padding: 38px;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        }
+
+        .brand {
+            margin-bottom: 8px;
+            color: #246b50;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            font-size: 30px;
+        }
+
+        .subtitle {
+            margin-bottom: 28px;
+            color: #6c7771;
+            line-height: 1.5;
+        }
+
+        label {
+            display: block;
+            margin: 17px 0 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px 14px;
+            border: 1px solid #d8e0db;
+            border-radius: 9px;
+            outline: none;
+            font-size: 15px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus {
+            border-color: #27815c;
+            box-shadow: 0 0 0 3px rgba(39, 129, 92, 0.12);
+        }
+
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 14px;
+            border: none;
+            border-radius: 9px;
+            background: #246b50;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        button:hover {
+            background: #194f3a;
+            transform: translateY(-2px);
+        }
+
+        .message {
+            display: none;
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .message.error {
+            display: block;
+            background: #fff0f0;
+            color: #a52222;
+        }
+
+        .message.success {
+            display: block;
+            background: #eaf8ef;
+            color: #17663b;
+        }
+
+        .footer {
+            margin-top: 23px;
+            text-align: center;
+            color: #68736d;
+            font-size: 14px;
+        }
+
+        a {
+            color: #246b50;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="register-card">
+        <div class="brand">CivicLen</div>
+
+        <h1>Create account</h1>
+
+        <p class="subtitle">
+            Join CivicLen to report road issues and help improve your community.
+        </p>
+
+        <form id="register-form">
+            <label for="full-name">Full name</label>
+            <input
+                id="full-name"
+                name="full_name"
+                type="text"
+                autocomplete="name"
+                maxlength="100"
+                required
+            >
+
+            <label for="email">Email address</label>
+            <input
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                maxlength="254"
+                required
+            >
+
+            <label for="password">Password</label>
+            <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                minlength="8"
+                required
+            >
+
+            <label for="confirm-password">Confirm password</label>
+            <input
+                id="confirm-password"
+                name="confirm_password"
+                type="password"
+                autocomplete="new-password"
+                minlength="8"
+                required
+            >
+
+            <button type="submit">Create Account</button>
+
+            <div id="message" class="message" role="status" aria-live="polite"></div>
+        </form>
+
+        <div class="footer">
+            Already have an account?
+            <a href="/login">Sign in</a>
+        </div>
+    </main>
+
+    <script>
+        const form = document.getElementById("register-form");
+        const message = document.getElementById("message");
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const fullName = document.getElementById("full-name").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+
+            message.className = "message";
+            message.textContent = "";
+
+            if (password !== confirmPassword) {
+                message.className = "message error";
+                message.textContent = "Passwords do not match.";
+                return;
+            }
+
+            try {
+                const response = await fetch("/api/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        full_name: fullName,
+                        email: email,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || "Registration failed.");
+                }
+
+                message.className = "message success";
+                message.textContent = "Account created successfully! Redirecting to sign in...";
+
+                form.reset();
+
+                setTimeout(() => {
+                    window.location.href = "/login";
+                }, 1500);
+
+            } catch (error) {
+                message.className = "message error";
+                message.textContent = error.message || "Could not connect to the server.";
+            }
+        });
+    </script>
+</body>
+</html>

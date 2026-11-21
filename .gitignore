@@ -1,0 +1,10 @@
+﻿__pycache__/
+*.py[cod]
+venv/
+.env
+.env.*
+!.env.example
+app_broken_backup.py.py
+road_matching_backup.py
+
+static/uploads/
