@@ -154,6 +154,70 @@
     border-color: #6B9278;
     box-shadow: 0 0 0 3px rgba(107, 146, 120, 0.12);
 }
+.report-search-box {
+    flex: 1;
+    min-width: 280px;
+}
+
+.report-search-box label {
+    display: block;
+    margin-bottom: 8px;
+    color: #24483B;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.report-search-input {
+    display: flex;
+    align-items: center;
+    background: #F8FBF8;
+    border: 1px solid #DCE8DE;
+    border-radius: 8px;
+    padding-left: 14px;
+    transition: 0.3s ease;
+}
+
+.report-search-input:focus-within {
+    border-color: #6B9278;
+    box-shadow: 0 0 0 3px rgba(107, 146, 120, 0.12);
+}
+
+.search-icon {
+    font-size: 25px;
+    color: #24483B;
+}
+
+.report-search-input input {
+    width: 100%;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none;
+}
+
+/* Search Box Hover Effect */
+.report-search-input:hover {
+    border-color: #6B9278;
+    box-shadow: 0 3px 12px rgba(36, 72, 59, 0.08);
+    transform: translateY(-2px);
+}
+
+.report-search-input:hover .search-icon {
+    color: #123b35;
+    transform: scale(1.12);
+}
+
+.report-search-input .search-icon {
+    transition: all 0.3s ease;
+}
+
+.report-search-input {
+    transition: all 0.3s ease;
+}
+
+
+
 
 .report-filters select {
     min-width: 170px;
@@ -1116,11 +1180,18 @@ line-height: 1.8;
 
             <div class="report-filters">
 
-    <input
-        type="text"
-        id="report-search"
-        placeholder="Search by ID, issue or description..."
-    >
+    <div class="report-search-box">
+    <label for="report-search">SEARCH REPORTS</label>
+
+    <div class="report-search-input">
+        <span class="search-icon">⌕</span>
+        <input
+            type="text"
+            id="report-search"
+            placeholder="Search by Report ID, Issue Type or Description..."
+        >
+    </div>
+</div>
 
     <select id="status-filter">
         <option value="All">All Reports</option>

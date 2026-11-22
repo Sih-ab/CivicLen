@@ -65,9 +65,13 @@ app.config["SESSION_COOKIE_SECURE"] = (
     os.environ.get("APP_ENV") == "production"
 )
 
-
 # SQL Server connection settings
-CONNECTION_STRING = (
+
+AZURE_SQL_CONNECTION_STRING = os.environ.get(
+    "AZURE_SQL_CONNECTION_STRING"
+)
+
+LOCAL_CONNECTION_STRING = (
     "DRIVER={ODBC Driver 17 for SQL Server};"
     r"SERVER=SIHAB\SQLEXPRESS;"
     "DATABASE=CivicLenDB;"
@@ -75,11 +79,15 @@ CONNECTION_STRING = (
     "TrustServerCertificate=yes;"
 )
 
-
-def allowed_file(filename):
-    return (
-        "." in filename
-        and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+if os.environ.get("APP_ENV") == "production":
+    if not AZURE_SQL_CONNECTION_STRING:
+        raise RuntimeError(
+            "AZURE_SQL_CONNECTION_STRING must be configured."
+        )
+    CONNECTION_STRING = AZURE_SQL_CONNECTION_STRING
+else:
+    CONNECTION_STRING = (
+        AZURE_SQL_CONNECTION_STRING or LOCAL_CONNECTION_STRING
     )
 
 def get_connection():
