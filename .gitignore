@@ -8,3 +8,7 @@ app_broken_backup.py.py
 road_matching_backup.py
 
 static/uploads/
+.venv/
+*.zip
+.pytest_cache/
+instance/

@@ -6,7 +6,8 @@ from flask import (
     request,
     session,
     redirect,
-    url_for
+    url_for,
+    send_from_directory
 )
 
 
@@ -31,8 +32,7 @@ from werkzeug.security import (
     generate_password_hash,
     check_password_hash
 )
-
-from flask import make_response
+from flask import make_response, send_from_directory
 
 
 app = Flask(__name__)
@@ -236,7 +236,12 @@ def haversine_distance_m(lat1, lon1, lat2, lon2):
 # Dashboard
 # ----------------------------------
 
-
+@app.route("/google3e77425aeb8e7f63.html")
+def google_site_verification():
+    return send_from_directory(
+        app.root_path,
+        "google3e77425aeb8e7f63.html"
+    )
 
 
 @app.route("/")
@@ -3636,6 +3641,9 @@ def get_authority_overview():
     finally:
         if connection is not None:
             connection.close()
+
+
+
 
 
 
